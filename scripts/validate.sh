@@ -13,3 +13,6 @@ echo "- intake mappings present: $(find intake/mappings -maxdepth 1 -type f | wc
 
 node cli.js --help >/dev/null
 echo "- cli help: ok"
+
+node scripts/library-check.js >/dev/null
+echo "- team library manifest: ok"

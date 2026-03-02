@@ -26,6 +26,8 @@ Repo-embeddable, provider-agnostic agent operations module for:
    - `node cli.js intake sync --source ado`
    - `node cli.js intake sync --source itrack`
    - `node cli.js intake sync --source all`
+4. Validate shared team library:
+   - `node cli.js library check`
 
 ## Intake env vars
 
@@ -45,3 +47,22 @@ Repo-embeddable, provider-agnostic agent operations module for:
 
 - `queue/work-items.latest.json`: normalized latest sync result
 - `.agent-manager/sync-state.json`: per-source cursor and sync metadata
+
+## Shared Team Library
+
+The shared library lives under `library/` and is tracked via:
+
+- `library/manifests/team-library.json`
+
+Supported catalog kinds:
+
+- `agent`
+- `hook`
+- `skill`
+- `plugin`
+- `prompt`
+
+Check integrity (duplicate IDs, invalid kinds, missing files):
+
+- `node scripts/library-check.js`
+- `node cli.js library check`

@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "updatedAt": "2026-03-02",
+  "entries": [
+    {
+      "id": "agent.jane-main",
+      "kind": "agent",
+      "name": "Jane Main",
+      "path": "library/agents/jane-main.md",
+      "owner": "platform-team",
+      "tags": ["operations", "conductor"]
+    },
+    {
+      "id": "hook.session-start-context",
+      "kind": "hook",
+      "name": "Session Start Context",
+      "path": "library/hooks/session-start-context.md",
+      "owner": "platform-team",
+      "tags": ["startup", "context"]
+    },
+    {
+      "id": "skill.context-hygiene",
+      "kind": "skill",
+      "name": "Context Hygiene",
+      "path": "library/skills/context-hygiene.md",
+      "owner": "platform-team",
+      "tags": ["docs", "continuity"]
+    },
+    {
+      "id": "plugin.intake-ado",
+      "kind": "plugin",
+      "name": "ADO Intake Plugin",
+      "path": "library/plugins/intake-ado.md",
+      "owner": "platform-team",
+      "tags": ["ado", "work-intake"]
+    },
+    {
+      "id": "prompt.handoff-summary",
+      "kind": "prompt",
+      "name": "Handoff Summary Prompt",
+      "path": "library/prompts/handoff-summary.md",
+      "owner": "platform-team",
+      "tags": ["handoff", "summary"]
+    }
+  ]
+}

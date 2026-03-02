@@ -8,6 +8,7 @@
   },
   "scripts": {
     "validate": "bash scripts/validate.sh",
+    "library:check": "node scripts/library-check.js",
     "intake:sync:ado": "node cli.js intake sync --source ado",
     "intake:sync:itrack": "node cli.js intake sync --source itrack"
   },

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { runIntakeSync } from "./intake/index.js";
+import { spawn } from "node:child_process";
 
 function parseArgs(argv) {
   const positional = [];
@@ -33,11 +34,13 @@ function printHelp() {
       "",
       "Usage:",
       "  agent-manager intake sync --source <ado|itrack|all> [--limit <n>] [--dry-run]",
+      "  agent-manager library check",
       "",
       "Examples:",
       "  agent-manager intake sync --source ado",
       "  agent-manager intake sync --source itrack --limit 50",
       "  agent-manager intake sync --source all",
+      "  agent-manager library check",
       "",
       "Environment:",
       "  ADO_ORG, ADO_PROJECT, ADO_PAT",
@@ -56,6 +59,22 @@ async function main() {
   }
 
   if (positional[0] !== "intake" || positional[1] !== "sync") {
+    if (positional[0] === "library" && positional[1] === "check") {
+      const child = spawn(process.execPath, ["scripts/library-check.js"], {
+        stdio: "inherit"
+      });
+      await new Promise((resolve, reject) => {
+        child.on("exit", (code) => {
+          if (code === 0) {
+            resolve();
+            return;
+          }
+          reject(new Error(`library check failed with code ${code}`));
+        });
+        child.on("error", reject);
+      });
+      return;
+    }
     printHelp();
     process.exitCode = 1;
     return;

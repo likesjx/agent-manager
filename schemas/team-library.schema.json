@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TeamLibraryManifest",
+  "type": "object",
+  "required": ["version", "updatedAt", "entries"],
+  "properties": {
+    "version": { "type": "string" },
+    "updatedAt": { "type": "string" },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "name", "path", "owner", "tags"],
+        "properties": {
+          "id": { "type": "string" },
+          "kind": {
+            "type": "string",
+            "enum": ["agent", "hook", "skill", "plugin", "prompt"]
+          },
+          "name": { "type": "string" },
+          "path": { "type": "string" },
+          "owner": { "type": "string" },
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
