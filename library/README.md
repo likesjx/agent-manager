@@ -7,6 +7,7 @@ This folder is the shared catalog for team-reusable:
 - skills
 - plugins
 - prompts
+- tools
 
 Registry source of truth:
 

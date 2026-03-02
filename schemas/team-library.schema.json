@@ -15,7 +15,7 @@
           "id": { "type": "string" },
           "kind": {
             "type": "string",
-            "enum": ["agent", "hook", "skill", "plugin", "prompt"]
+            "enum": ["agent", "hook", "skill", "plugin", "prompt", "tool"]
           },
           "name": { "type": "string" },
           "path": { "type": "string" },

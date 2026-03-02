@@ -61,6 +61,7 @@ Supported catalog kinds:
 - `skill`
 - `plugin`
 - `prompt`
+- `tool`
 
 Check integrity (duplicate IDs, invalid kinds, missing files):
 

@@ -8,7 +8,10 @@
       "name": "Jane Main",
       "path": "library/agents/jane-main.md",
       "owner": "platform-team",
-      "tags": ["operations", "conductor"]
+      "tags": [
+        "operations",
+        "conductor"
+      ]
     },
     {
       "id": "hook.session-start-context",
@@ -16,7 +19,10 @@
       "name": "Session Start Context",
       "path": "library/hooks/session-start-context.md",
       "owner": "platform-team",
-      "tags": ["startup", "context"]
+      "tags": [
+        "startup",
+        "context"
+      ]
     },
     {
       "id": "skill.context-hygiene",
@@ -24,7 +30,10 @@
       "name": "Context Hygiene",
       "path": "library/skills/context-hygiene.md",
       "owner": "platform-team",
-      "tags": ["docs", "continuity"]
+      "tags": [
+        "docs",
+        "continuity"
+      ]
     },
     {
       "id": "plugin.intake-ado",
@@ -32,7 +41,10 @@
       "name": "ADO Intake Plugin",
       "path": "library/plugins/intake-ado.md",
       "owner": "platform-team",
-      "tags": ["ado", "work-intake"]
+      "tags": [
+        "ado",
+        "work-intake"
+      ]
     },
     {
       "id": "prompt.handoff-summary",
@@ -40,7 +52,21 @@
       "name": "Handoff Summary Prompt",
       "path": "library/prompts/handoff-summary.md",
       "owner": "platform-team",
-      "tags": ["handoff", "summary"]
+      "tags": [
+        "handoff",
+        "summary"
+      ]
+    },
+    {
+      "id": "tool.repo-health-check",
+      "kind": "tool",
+      "name": "Repo Health Check",
+      "path": "library/tools/repo-health-check.md",
+      "owner": "platform-team",
+      "tags": [
+        "tooling",
+        "quality"
+      ]
     }
   ]
 }

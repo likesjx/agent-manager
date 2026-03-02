@@ -28,7 +28,7 @@ async function main() {
   }
 
   const seen = new Set();
-  const allowedKinds = new Set(["agent", "hook", "skill", "plugin", "prompt"]);
+  const allowedKinds = new Set(["agent", "hook", "skill", "plugin", "prompt", "tool"]);
 
   for (const entry of manifest.entries) {
     if (!entry.id || typeof entry.id !== "string") {
