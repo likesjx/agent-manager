@@ -1,0 +1,5 @@
+workflow_id: handoff
+required_steps: []
+artifacts: []
+role_policy: {}
+automation_hooks: []

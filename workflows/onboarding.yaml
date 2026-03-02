@@ -1,0 +1,5 @@
+workflow_id: onboarding
+required_steps: []
+artifacts: []
+role_policy: {}
+automation_hooks: []

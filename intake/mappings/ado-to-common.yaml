@@ -1,0 +1,7 @@
+source: ado
+mapping:
+  source_id: id
+  title: fields.System.Title
+  description: fields.System.Description
+  status: fields.System.State
+  assignee: fields.System.AssignedTo.displayName

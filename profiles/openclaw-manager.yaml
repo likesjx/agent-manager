@@ -1,0 +1,7 @@
+profile_id: openclaw-manager
+branding:
+  title: OpenClaw Manager
+allowed_commands: []
+default_scope_policy: safe-observe-all
+safety_posture: explicit-ack-for-mutations
+docs_urls: []

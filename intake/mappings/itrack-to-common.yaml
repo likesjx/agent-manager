@@ -1,0 +1,7 @@
+source: itrack
+mapping:
+  source_id: issueId
+  title: summary
+  description: description
+  status: state
+  assignee: owner

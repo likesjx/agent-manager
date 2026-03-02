@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NormalizedWorkItem",
+  "type": "object",
+  "required": ["source_system", "source_id", "title", "status"],
+  "properties": {
+    "source_system": {"type": "string", "enum": ["ado", "itrack", "local"]},
+    "source_id": {"type": "string"},
+    "title": {"type": "string"},
+    "description": {"type": "string"},
+    "priority": {"type": ["string", "number"]},
+    "status": {"type": "string"},
+    "assignee": {"type": "string"},
+    "labels": {"type": "array", "items": {"type": "string"}},
+    "sprint_or_milestone": {"type": "string"},
+    "links": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": true
+}

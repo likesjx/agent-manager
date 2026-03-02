@@ -1,0 +1,7 @@
+profile_id: internal-command-center
+branding:
+  title: Internal Command Center
+allowed_commands: []
+default_scope_policy: role-based
+safety_posture: policy-gated
+docs_urls: []
