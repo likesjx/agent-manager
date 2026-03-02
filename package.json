@@ -1,0 +1,18 @@
+{
+  "name": "@likesjx/agent-manager",
+  "version": "0.1.0",
+  "description": "Repo-embeddable, provider-agnostic agent operations module",
+  "type": "module",
+  "bin": {
+    "agent-manager": "./cli.js"
+  },
+  "scripts": {
+    "validate": "bash scripts/validate.sh",
+    "intake:sync:ado": "node cli.js intake sync --source ado",
+    "intake:sync:itrack": "node cli.js intake sync --source itrack"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "license": "MIT"
+}

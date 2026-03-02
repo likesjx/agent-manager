@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IntakeSyncState",
+  "type": "object",
+  "properties": {
+    "sources": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lastSyncAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fetched": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "cursor",
+          "lastSyncAt",
+          "fetched"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "sources"
+  ],
+  "additionalProperties": false
+}
