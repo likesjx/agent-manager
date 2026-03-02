@@ -1,5 +1,32 @@
 workflow_id: code-management
-required_steps: []
-artifacts: []
-role_policy: {}
-automation_hooks: []
+name: Code Management Governance
+description: Enforce branch, commit, validation, and review checkpoints before handoff.
+required_steps:
+  - id: create_branch
+    name: Create branch
+    description: Start work on codex-prefixed branch.
+    command: git checkout -b codex/<ticket-or-goal>
+    outputs: active feature branch
+  - id: checkpoint_work
+    name: Checkpoint assignment
+    description: Record progress checkpoint for active assignment.
+    command: node cli.js work checkpoint --assignment <assignment-id> --label <label> --note <note>
+    outputs: updated assignment checkpoint
+  - id: run_validation
+    name: Validate repository
+    description: Run structural and workflow validation.
+    command: npm run validate
+    outputs: validation status
+  - id: complete_assignment
+    name: Complete assignment
+    description: Mark work item complete and release locks.
+    command: node cli.js work complete --assignment <assignment-id> --result <summary>
+    outputs: history record under .agent-manager/history
+artifacts:
+  - .agent-manager/work-state.json
+  - .agent-manager/history/*.json
+role_policy:
+  operator:
+    required: [create_branch, checkpoint_work, run_validation, complete_assignment]
+automation_hooks:
+  - on_assignment_completed

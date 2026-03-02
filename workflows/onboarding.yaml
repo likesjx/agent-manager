@@ -1,5 +1,27 @@
 workflow_id: onboarding
-required_steps: []
-artifacts: []
-role_policy: {}
-automation_hooks: []
+name: Team Onboarding
+description: Prepare a new repo/operator with library, provider bundle, and baseline workflow checks.
+required_steps:
+  - id: validate_library
+    name: Validate shared library
+    description: Ensure team manifest integrity.
+    command: node cli.js library check
+    outputs: library validation success
+  - id: render_provider_bundle
+    name: Render provider bundle
+    description: Generate provider-ready instructions from shared library.
+    command: node cli.js provider render --provider claude-code
+    outputs: .agent-manager/providers/claude-code/*
+  - id: validate_workflows
+    name: Validate workflow specs
+    description: Ensure workflow files have required structure.
+    command: node cli.js workflow check
+    outputs: workflow validation success
+artifacts:
+  - .agent-manager/providers/claude-code/system_instructions.md
+  - workflows/*.yaml
+role_policy:
+  maintainer:
+    required: [validate_library, render_provider_bundle, validate_workflows]
+automation_hooks:
+  - on_onboarding_complete

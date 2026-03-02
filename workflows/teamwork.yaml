@@ -1,5 +1,28 @@
 workflow_id: teamwork
-required_steps: []
-artifacts: []
-role_policy: {}
-automation_hooks: []
+name: Teamwork Coordination
+description: Assign work, acquire locks, and prevent overlapping edits.
+required_steps:
+  - id: assign_work
+    name: Assign work
+    description: Create active assignment with optional file locks.
+    command: node cli.js work assign --work-item <id> --title <title> --agent <agent> --paths <csv-paths>
+    outputs: assignment_id
+  - id: review_status
+    name: Review status
+    description: Inspect active and completed assignments.
+    command: node cli.js work status
+    outputs: work state snapshot
+  - id: release_conflict
+    name: Release on conflict
+    description: Release assignment and free locks when blocked.
+    command: node cli.js work release --assignment <assignment-id> --reason <reason>
+    outputs: released assignment history
+artifacts:
+  - .agent-manager/work-state.json
+  - .agent-manager/locks/*.json
+role_policy:
+  coordinator:
+    required: [assign_work, review_status]
+automation_hooks:
+  - on_assignment_created
+  - on_lock_conflict

@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AgentHandoffState",
+  "type": "object",
+  "required": [
+    "handoff_id",
+    "goal",
+    "from_agent",
+    "to_agent",
+    "status",
+    "protocol",
+    "work_item",
+    "context",
+    "decisions",
+    "risks",
+    "open_loops",
+    "next_commands",
+    "files_touched",
+    "checkpoint",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "handoff_id": { "type": "string" },
+    "goal": { "type": "string" },
+    "from_agent": { "type": "string" },
+    "to_agent": { "type": "string" },
+    "status": { "type": "string", "enum": ["captured", "validated", "resumed", "rolled_back"] },
+    "protocol": {
+      "type": "object",
+      "required": ["delivery", "mode"],
+      "properties": {
+        "delivery": { "type": "string", "enum": ["push", "pull"] },
+        "mode": { "type": "string", "enum": ["sync", "async"] }
+      },
+      "additionalProperties": false
+    },
+    "work_item": {
+      "type": "object",
+      "required": ["id", "title", "source"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "source": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "context": {
+      "type": "object",
+      "required": ["summary", "compression"],
+      "properties": {
+        "summary": { "type": "string" },
+        "compression": {
+          "type": "object",
+          "required": ["strategy", "source_chars", "stored_chars"],
+          "properties": {
+            "strategy": { "type": "string" },
+            "source_chars": { "type": "integer", "minimum": 0 },
+            "stored_chars": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "decisions": { "type": "array", "items": { "type": "string" } },
+    "risks": { "type": "array", "items": { "type": "string" } },
+    "open_loops": { "type": "array", "items": { "type": "string" } },
+    "next_commands": { "type": "array", "items": { "type": "string" } },
+    "files_touched": { "type": "array", "items": { "type": "string" } },
+    "checkpoint": {
+      "type": "object",
+      "required": ["label", "notes", "captured_at"],
+      "properties": {
+        "label": { "type": "string" },
+        "notes": { "type": "string" },
+        "captured_at": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "resume": {
+      "type": "object",
+      "properties": {
+        "resumed_by": { "type": "string" },
+        "resumed_at": { "type": "string" },
+        "resume_notes": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "rollback": {
+      "type": "object",
+      "properties": {
+        "rolled_back_by": { "type": "string" },
+        "rolled_back_at": { "type": "string" },
+        "rollback_reason": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "created_at": { "type": "string" },
+    "updated_at": { "type": "string" }
+  },
+  "additionalProperties": false
+}

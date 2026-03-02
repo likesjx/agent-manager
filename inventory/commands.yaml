@@ -1,1 +1,40 @@
-commands: []
+commands:
+  - id: intake.sync
+    usage: node cli.js intake sync --source <ado|itrack|all> [--limit <n>] [--dry-run]
+    category: intake
+  - id: library.check
+    usage: node cli.js library check
+    category: library
+  - id: workflow.check
+    usage: node cli.js workflow check
+    category: governance
+  - id: handoff.start
+    usage: node cli.js handoff start --from <agent> --to <agent> --work-item <id> --title <title> --goal <goal> --context-summary <summary> --decisions <csv> --risks <csv> --open-loops <csv> --next-commands <csv> --files-touched <csv> --notes <notes>
+    category: handoff
+  - id: handoff.validate
+    usage: node cli.js handoff validate --file <handoff-file>
+    category: handoff
+  - id: handoff.resume
+    usage: node cli.js handoff resume --file <handoff-file> --agent <agent> [--notes <text>]
+    category: handoff
+  - id: handoff.rollback
+    usage: node cli.js handoff rollback --file <handoff-file> --agent <agent> --reason <text>
+    category: handoff
+  - id: work.assign
+    usage: node cli.js work assign --work-item <id> --agent <agent> [--title <title>] [--paths <csv>]
+    category: teamwork
+  - id: work.checkpoint
+    usage: node cli.js work checkpoint --assignment <id> --label <label> --note <text>
+    category: teamwork
+  - id: work.complete
+    usage: node cli.js work complete --assignment <id> --result <summary>
+    category: teamwork
+  - id: work.release
+    usage: node cli.js work release --assignment <id> --reason <text>
+    category: teamwork
+  - id: work.status
+    usage: node cli.js work status
+    category: teamwork
+  - id: provider.render
+    usage: node cli.js provider render --provider claude-code [--output-dir <dir>]
+    category: provider

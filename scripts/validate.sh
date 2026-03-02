@@ -16,3 +16,9 @@ echo "- cli help: ok"
 
 node scripts/library-check.js >/dev/null
 echo "- team library manifest: ok"
+
+node scripts/workflow-check.js >/dev/null
+echo "- workflow specs: ok"
+
+node --test tests/*.test.js >/dev/null
+echo "- tests: ok"

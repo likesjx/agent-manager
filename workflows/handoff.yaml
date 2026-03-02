@@ -1,5 +1,35 @@
 workflow_id: handoff
-required_steps: []
-artifacts: []
-role_policy: {}
-automation_hooks: []
+name: Agent Handoff
+description: Capture, validate, transfer, and resume structured handoff state.
+required_steps:
+  - id: capture_state
+    name: Capture state
+    description: Serialize current session state and write handoff file.
+    command: node cli.js handoff start --from <agent> --to <agent> --work-item <id> --title <title> --goal <goal> --context-summary <summary> --decisions <csv> --risks <csv> --open-loops <csv> --next-commands <csv> --files-touched <csv> --notes <notes>
+    outputs: handoffs/<handoff-id>.json
+  - id: validate_state
+    name: Validate handoff payload
+    description: Ensure required fields are present and non-placeholder.
+    command: node cli.js handoff validate --file <handoff-file>
+    outputs: validated handoff status
+  - id: transfer_context
+    name: Transfer to receiver
+    description: Communicate the handoff file path and next commands to target operator.
+    command: node cli.js handoff resume --file <handoff-file> --agent <receiver> --notes <resume-notes>
+    outputs: resumed handoff status
+  - id: rollback_on_failure
+    name: Rollback failed transfer
+    description: Mark handoff rolled back and capture rollback reason.
+    command: node cli.js handoff rollback --file <handoff-file> --agent <receiver> --reason <reason>
+    outputs: rolled_back handoff status
+artifacts:
+  - handoffs/*.json
+  - .agent-manager/work-state.json
+role_policy:
+  producer:
+    required: [capture_state, validate_state]
+  receiver:
+    required: [transfer_context]
+automation_hooks:
+  - on_handoff_created
+  - on_handoff_resumed

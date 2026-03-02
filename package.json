@@ -8,7 +8,10 @@
   },
   "scripts": {
     "validate": "bash scripts/validate.sh",
+    "test": "node --test tests/*.test.js",
     "library:check": "node scripts/library-check.js",
+    "workflow:check": "node scripts/workflow-check.js",
+    "provider:render:claude": "node cli.js provider render --provider claude-code",
     "intake:sync:ado": "node cli.js intake sync --source ado",
     "intake:sync:itrack": "node cli.js intake sync --source itrack"
   },

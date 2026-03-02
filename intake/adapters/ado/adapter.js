@@ -1,3 +1,5 @@
+import { fetchWithRetry } from "../http.js";
+
 function getRequiredEnv(name) {
   const value = process.env[name];
   if (!value) {
@@ -46,6 +48,7 @@ export async function runAdoSync({ cursor, limit }) {
   const project = getRequiredEnv("ADO_PROJECT");
   const base = `https://dev.azure.com/${encodeURIComponent(org)}/${encodeURIComponent(project)}`;
   const headers = makeAdoHeaders();
+  const cappedLimit = Math.max(1, Math.floor(limit));
 
   const changedClause = cursor ? `AND [System.ChangedDate] > ${toAdoDateLiteral(cursor)}` : "";
   const wiql = {
@@ -57,46 +60,58 @@ export async function runAdoSync({ cursor, limit }) {
   };
 
   const queryUrl = `${base}/_apis/wit/wiql?api-version=7.1`;
-  const wiqlResp = await fetch(queryUrl, {
+  const wiqlResp = await fetchWithRetry(queryUrl, {
     method: "POST",
     headers,
     body: JSON.stringify(wiql)
+  }, {
+    label: "ADO WIQL"
   });
   if (!wiqlResp.ok) {
     throw new Error(`ADO WIQL failed (${wiqlResp.status}): ${await wiqlResp.text()}`);
   }
   const wiqlData = await wiqlResp.json();
-  const ids = (wiqlData.workItems || []).map((w) => w.id).slice(0, limit);
+  const ids = (wiqlData.workItems || []).map((w) => w.id).slice(0, cappedLimit);
 
   if (ids.length === 0) {
     return { items: [], nextCursor: cursor };
   }
 
   const batchUrl = `${base}/_apis/wit/workitemsbatch?api-version=7.1`;
-  const batchResp = await fetch(batchUrl, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      ids,
-      fields: [
-        "System.Title",
-        "System.Description",
-        "System.State",
-        "System.AssignedTo",
-        "System.Tags",
-        "System.IterationPath",
-        "System.TeamProject",
-        "System.ChangedDate",
-        "Microsoft.VSTS.Common.Priority"
-      ]
-    })
-  });
-  if (!batchResp.ok) {
-    throw new Error(`ADO batch fetch failed (${batchResp.status}): ${await batchResp.text()}`);
+  const fields = [
+    "System.Title",
+    "System.Description",
+    "System.State",
+    "System.AssignedTo",
+    "System.Tags",
+    "System.IterationPath",
+    "System.TeamProject",
+    "System.ChangedDate",
+    "Microsoft.VSTS.Common.Priority"
+  ];
+  const batchSize = 200;
+  const items = [];
+
+  for (let i = 0; i < ids.length; i += batchSize) {
+    const batchIds = ids.slice(i, i + batchSize);
+    const batchResp = await fetchWithRetry(batchUrl, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        ids: batchIds,
+        fields
+      })
+    }, {
+      label: "ADO workitems batch"
+    });
+    if (!batchResp.ok) {
+      throw new Error(`ADO batch fetch failed (${batchResp.status}): ${await batchResp.text()}`);
+    }
+
+    const batchData = await batchResp.json();
+    items.push(...(batchData.value || []).map(normalizeAdoItem));
   }
 
-  const batchData = await batchResp.json();
-  const items = (batchData.value || []).map(normalizeAdoItem);
   const nextCursor =
     items.map((i) => i.updated_at).filter(Boolean).sort().at(-1) || cursor || null;
 
