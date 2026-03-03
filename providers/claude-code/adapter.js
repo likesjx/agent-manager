@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { byKind, loadCatalog } from "../shared/catalog.js";
 
@@ -62,5 +62,25 @@ export async function renderClaudeBundle(options = {}) {
     outputDir,
     files: [instructionsPath, metadataPath],
     entryCount: catalog.entries.length
+  };
+}
+
+export async function installClaudeBundle(options = {}) {
+  const rendered = await renderClaudeBundle(options);
+  const targetDir = path.resolve(process.cwd(), options.installDir || ".claud_project");
+  const sourceInstructions = path.join(rendered.outputDir, "system_instructions.md");
+  const sourceMetadata = path.join(rendered.outputDir, "bundle-metadata.json");
+  const targetInstructions = path.join(targetDir, "system_instructions.md");
+  const targetMetadata = path.join(targetDir, "agent-manager-bundle-metadata.json");
+
+  await mkdir(targetDir, { recursive: true });
+  await copyFile(sourceInstructions, targetInstructions);
+  await copyFile(sourceMetadata, targetMetadata);
+
+  return {
+    ...rendered,
+    installed: true,
+    installDir: targetDir,
+    installFiles: [targetInstructions, targetMetadata]
   };
 }

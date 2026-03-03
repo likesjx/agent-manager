@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-03-02",
+  "updatedAt": "2026-03-03",
   "entries": [
     {
       "id": "agent.jane-main",
@@ -33,6 +33,31 @@
       "tags": [
         "docs",
         "continuity"
+      ]
+    },
+    {
+      "id": "skill.cli-maintainer",
+      "kind": "skill",
+      "name": "CLI Maintainer",
+      "path": "library/skills/cli-maintainer.md",
+      "owner": "platform-team",
+      "tags": [
+        "cli",
+        "migration",
+        "rust"
+      ]
+    },
+    {
+      "id": "skill.agent-manager-lifecycle",
+      "kind": "skill",
+      "name": "Agent Manager Lifecycle",
+      "path": "library/skills/agent-manager-lifecycle.md",
+      "owner": "platform-team",
+      "tags": [
+        "onboarding",
+        "operations",
+        "release",
+        "lifecycle"
       ]
     },
     {

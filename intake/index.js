@@ -1,48 +1,52 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { readJson, withFileLock, writeJson } from "../runtime/json-store.js";
 import { runAdoSync } from "./adapters/ado/adapter.js";
 import { runItrackSync } from "./adapters/itrack/adapter.js";
 
-const STATE_DIR = path.resolve(process.cwd(), ".agent-manager");
-const STATE_PATH = path.join(STATE_DIR, "sync-state.json");
-const OUTPUT_DIR = path.resolve(process.cwd(), "queue");
-const OUTPUT_PATH = path.join(OUTPUT_DIR, "work-items.latest.json");
+function stateDir() {
+  return path.resolve(process.cwd(), ".agent-manager");
+}
+
+function statePath() {
+  return path.join(stateDir(), "sync-state.json");
+}
+
+function stateLockPath() {
+  return path.join(stateDir(), "sync-state.lock");
+}
+
+function outputPath() {
+  return path.resolve(process.cwd(), "queue", "work-items.latest.json");
+}
 
 async function loadState() {
-  try {
-    const raw = await readFile(STATE_PATH, "utf8");
-    return JSON.parse(raw);
-  } catch {
-    return { sources: {} };
-  }
+  return readJson(statePath(), { sources: {} });
 }
 
 async function saveState(state) {
-  await mkdir(STATE_DIR, { recursive: true });
-  await writeFile(STATE_PATH, `${JSON.stringify(state, null, 2)}\n`, "utf8");
+  await writeJson(statePath(), state);
 }
 
 async function writeOutput(items) {
-  await mkdir(OUTPUT_DIR, { recursive: true });
   const payload = {
     generatedAt: new Date().toISOString(),
     count: items.length,
     items
   };
-  await writeFile(OUTPUT_PATH, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
+  await writeJson(outputPath(), payload);
 }
 
-export async function runIntakeSync({ source, limit, dryRun }) {
+async function runSyncUnsafe({ source, limit, dryRun }) {
   const state = await loadState();
   const summaries = [];
-  let allItems = [];
+  const allItems = [];
 
   const sources = source === "all" ? ["ado", "itrack"] : [source];
   for (const provider of sources) {
     const cursor = state.sources[provider]?.cursor || null;
     const runner = provider === "ado" ? runAdoSync : runItrackSync;
     const result = await runner({ cursor, limit });
-    allItems = allItems.concat(result.items);
+    allItems.push(...result.items);
     state.sources[provider] = {
       cursor: result.nextCursor || cursor,
       lastSyncAt: new Date().toISOString(),
@@ -63,8 +67,15 @@ export async function runIntakeSync({ source, limit, dryRun }) {
   return {
     dryRun,
     totalFetched: allItems.length,
-    outputPath: dryRun ? null : OUTPUT_PATH,
-    statePath: dryRun ? null : STATE_PATH,
+    outputPath: dryRun ? null : outputPath(),
+    statePath: dryRun ? null : statePath(),
     sources: summaries
   };
+}
+
+export async function runIntakeSync({ source, limit, dryRun }) {
+  if (dryRun) {
+    return runSyncUnsafe({ source, limit, dryRun });
+  }
+  return withFileLock(stateLockPath(), () => runSyncUnsafe({ source, limit, dryRun }));
 }

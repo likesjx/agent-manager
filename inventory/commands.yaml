@@ -2,12 +2,30 @@ commands:
   - id: intake.sync
     usage: node cli.js intake sync --source <ado|itrack|all> [--limit <n>] [--dry-run]
     category: intake
+
   - id: library.check
     usage: node cli.js library check
     category: library
+  - id: library.add
+    usage: node cli.js library add --kind <kind> --name <name> --owner <owner> (--content <text> | --file <path>) [--tags <csv>] [--id <id>] [--force]
+    category: library
+  - id: library.remove
+    usage: node cli.js library remove --id <id> [--keep-file]
+    category: library
+  - id: library.list
+    usage: node cli.js library list [--kind <kind>] [--owner <owner>] [--tag <tag>]
+    category: library
+  - id: library.show
+    usage: node cli.js library show --id <id>
+    category: library
+  - id: library.scaffold
+    usage: node cli.js library scaffold --kind <kind> --name <name> [--purpose <text> ...]
+    category: library
+
   - id: workflow.check
     usage: node cli.js workflow check
     category: governance
+
   - id: handoff.start
     usage: node cli.js handoff start --from <agent> --to <agent> --work-item <id> --title <title> --goal <goal> --context-summary <summary> --decisions <csv> --risks <csv> --open-loops <csv> --next-commands <csv> --files-touched <csv> --notes <notes>
     category: handoff
@@ -20,8 +38,15 @@ commands:
   - id: handoff.rollback
     usage: node cli.js handoff rollback --file <handoff-file> --agent <agent> --reason <text>
     category: handoff
+  - id: handoff.list
+    usage: node cli.js handoff list [--to-agent <agent>] [--status <state>] [--work-item <id>]
+    category: handoff
+
   - id: work.assign
     usage: node cli.js work assign --work-item <id> --agent <agent> [--title <title>] [--paths <csv>]
+    category: teamwork
+  - id: work.assign-from-queue
+    usage: node cli.js work assign --from-queue --agent <agent> [--priority <p>] [--labels <csv>] [--paths <csv>]
     category: teamwork
   - id: work.checkpoint
     usage: node cli.js work checkpoint --assignment <id> --label <label> --note <text>
@@ -35,6 +60,40 @@ commands:
   - id: work.status
     usage: node cli.js work status
     category: teamwork
+
   - id: provider.render
     usage: node cli.js provider render --provider claude-code [--output-dir <dir>]
     category: provider
+  - id: provider.install
+    usage: node cli.js provider install --provider claude-code [--output-dir <dir>] [--install-dir <dir>]
+    category: provider
+
+  - id: describe.system
+    usage: node cli.js describe system
+    category: introspection
+  - id: describe.commands
+    usage: node cli.js describe commands
+    category: introspection
+  - id: describe.workflows
+    usage: node cli.js describe workflows
+    category: introspection
+  - id: describe.config
+    usage: node cli.js describe config
+    category: introspection
+
+  - id: agent.register
+    usage: node cli.js agent register --id <id> --provider <provider> [--name <name>] [--capabilities <csv>] [--force]
+    category: agent
+  - id: agent.heartbeat
+    usage: node cli.js agent heartbeat --id <id> [--status <status>]
+    category: agent
+  - id: agent.list
+    usage: node cli.js agent list [--offline-seconds <n>]
+    category: agent
+  - id: agent.onboard
+    usage: node cli.js agent onboard --id <id> --provider <provider> [--name <name>] [--capabilities <csv>] [--skip-install]
+    category: agent
+
+  - id: help
+    usage: node cli.js help [topic]
+    category: introspection

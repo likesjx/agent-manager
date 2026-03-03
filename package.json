@@ -12,6 +12,9 @@
     "library:check": "node scripts/library-check.js",
     "workflow:check": "node scripts/workflow-check.js",
     "provider:render:claude": "node cli.js provider render --provider claude-code",
+    "provider:install:claude": "node cli.js provider install --provider claude-code",
+    "describe:system": "node cli.js describe system",
+    "agent:list": "node cli.js agent list",
     "intake:sync:ado": "node cli.js intake sync --source ado",
     "intake:sync:itrack": "node cli.js intake sync --source itrack"
   },

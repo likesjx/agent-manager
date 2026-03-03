@@ -1,3 +1,4 @@
+import { readdir } from "node:fs/promises";
 import path from "node:path";
 import { readJson, writeJson, nowIso, makeId } from "../runtime/json-store.js";
 
@@ -19,11 +20,26 @@ function summarizeContext(rawSummary) {
   const summary = (rawSummary || "").trim();
   const sourceChars = summary.length;
   const maxChars = 1200;
-  const stored = summary.slice(0, maxChars);
+  if (sourceChars <= maxChars) {
+    return {
+      summary,
+      compression: {
+        strategy: "none",
+        source_chars: sourceChars,
+        stored_chars: sourceChars
+      }
+    };
+  }
+
+  const prefix = summary.slice(0, maxChars);
+  const sentenceBreak = Math.max(prefix.lastIndexOf(". "), prefix.lastIndexOf(".\n"));
+  const cutoff = sentenceBreak > Math.floor(maxChars * 0.7) ? sentenceBreak + 1 : maxChars;
+  const stored = summary.slice(0, cutoff).trim();
+
   return {
     summary: stored,
     compression: {
-      strategy: sourceChars > maxChars ? "truncate-1200" : "none",
+      strategy: cutoff < maxChars ? "sentence-boundary" : "truncate-1200",
       source_chars: sourceChars,
       stored_chars: stored.length
     }
@@ -188,4 +204,48 @@ export async function rollbackHandoff(file, rolledBackBy, rollbackReason = "") {
     status: payload.status,
     rolledBackBy
   };
+}
+
+export async function listHandoffs(filters = {}) {
+  const dir = handoffDir();
+  let files = [];
+  try {
+    files = await readdir(dir);
+  } catch {
+    return [];
+  }
+
+  const rows = [];
+  for (const file of files) {
+    if (!file.endsWith(".json")) {
+      continue;
+    }
+    const payload = await readJson(path.join(dir, file), null);
+    if (!payload) {
+      continue;
+    }
+
+    if (filters.toAgent && payload.to_agent !== filters.toAgent) {
+      continue;
+    }
+    if (filters.status && payload.status !== filters.status) {
+      continue;
+    }
+    if (filters.workItem && payload.work_item?.id !== filters.workItem) {
+      continue;
+    }
+
+    rows.push({
+      handoff_id: payload.handoff_id,
+      from_agent: payload.from_agent,
+      to_agent: payload.to_agent,
+      status: payload.status,
+      work_item: payload.work_item,
+      created_at: payload.created_at,
+      updated_at: payload.updated_at,
+      file: path.join(dir, file)
+    });
+  }
+
+  return rows.sort((a, b) => b.created_at.localeCompare(a.created_at));
 }

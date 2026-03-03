@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, readFile, readdir } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { assignWork, checkpointWork, completeWork, statusWork } from "../state/work-state.js";
+import { assignWork, assignWorkFromQueue, checkpointWork, completeWork, statusWork } from "../state/work-state.js";
 
 async function withTempCwd(fn) {
   const prev = process.cwd();
@@ -35,7 +35,7 @@ test("work assignment locks paths and blocks conflicting assignment", async () =
           agent: "architect",
           paths: "cli.js"
         }),
-      /already locked/
+      /Release with: node cli.js work release --assignment/
     );
 
     const checkpoint = await checkpointWork({
@@ -66,5 +66,47 @@ test("work assignment locks paths and blocks conflicting assignment", async () =
     const historyPath = path.join(process.cwd(), ".agent-manager", "history", `${assignment.assignment_id}.json`);
     const history = JSON.parse(await readFile(historyPath, "utf8"));
     assert.equal(history.result, "all done");
+  });
+});
+
+test("assign from queue picks unassigned item and sets defaults", async () => {
+  await withTempCwd(async () => {
+    await mkdir("queue", { recursive: true });
+    await writeFile(
+      "queue/work-items.latest.json",
+      `${JSON.stringify(
+        {
+          generatedAt: new Date().toISOString(),
+          count: 2,
+          items: [
+            {
+              source_system: "ado",
+              source_id: "A-1",
+              title: "First item",
+              priority: "1",
+              labels: ["backend"]
+            },
+            {
+              source_system: "itrack",
+              source_id: "I-2",
+              title: "Second item",
+              priority: "3",
+              labels: ["frontend"]
+            }
+          ]
+        },
+        null,
+        2
+      )}\n`,
+      "utf8"
+    );
+
+    const assigned = await assignWorkFromQueue({ agent: "codex", priority: "1" });
+    assert.equal(assigned.status, "active");
+
+    const state = await statusWork();
+    assert.equal(state.active_assignments.length, 1);
+    assert.equal(state.active_assignments[0].work_item_id, "A-1");
+    assert.equal(state.active_assignments[0].paths_locked.includes("intake/adapters/ado/adapter.js"), true);
   });
 });

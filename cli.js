@@ -3,19 +3,31 @@
 import { spawn } from "node:child_process";
 import { runIntakeSync } from "./intake/index.js";
 import {
+  addToLibrary,
+  listLibrary,
+  removeFromLibrary,
+  scaffoldLibraryEntry,
+  showLibraryEntry
+} from "./library/contribute.js";
+import {
   createHandoff,
+  listHandoffs,
   rollbackHandoff,
   resumeHandoff,
   validateHandoffFile
 } from "./handoffs/index.js";
 import {
   assignWork,
+  assignWorkFromQueue,
   checkpointWork,
   completeWork,
   releaseWork,
   statusWork
 } from "./state/work-state.js";
-import { renderProviderBundle } from "./providers/index.js";
+import { installProviderBundle, renderProviderBundle } from "./providers/index.js";
+import { describeCommands, describeSystem, describeWorkflows, getConfig } from "./runtime/introspect.js";
+import { generateHelp } from "./runtime/help.js";
+import { heartbeatAgent, listAgents, onboardAgent, registerAgent } from "./profiles/registry.js";
 
 function parseArgs(argv) {
   const positional = [];
@@ -48,20 +60,22 @@ function printHelp() {
       "",
       "Usage:",
       "  agent-manager intake sync --source <ado|itrack|all> [--limit <n>] [--dry-run]",
-      "  agent-manager library check",
-      "  agent-manager handoff <start|validate|resume|rollback> [flags]",
+      "  agent-manager library <check|add|remove|list|show|scaffold> [flags]",
+      "  agent-manager handoff <start|validate|resume|rollback|list> [flags]",
       "  agent-manager work <assign|checkpoint|complete|release|status> [flags]",
-      "  agent-manager provider render --provider <name> [--output-dir <dir>]",
+      "  agent-manager provider <render|install> --provider <name> [flags]",
       "  agent-manager workflow check",
+      "  agent-manager describe <system|commands|workflows|config>",
+      "  agent-manager agent <register|heartbeat|list|onboard> [flags]",
+      "  agent-manager help [topic]",
       "",
       "Examples:",
-      "  agent-manager handoff start --from codex --to architect --work-item W-101 --title 'Add retries' --goal 'Improve intake reliability' --context-summary 'adapter changes complete' --decisions 'added retry helper' --risks 'env vars required' --open-loops 'add fixture tests' --next-commands 'npm run validate,node cli.js workflow check' --files-touched 'intake/adapters/http.js' --notes 'ready for review'",
-      "  agent-manager handoff validate --file handoffs/handoff-*.json",
-      "  agent-manager work assign --work-item W-101 --agent codex --paths intake/adapters/http.js,cli.js",
-      "  agent-manager work checkpoint --assignment assign-... --label adapter-pass --note 'ado and itrack updated'",
-      "  agent-manager work complete --assignment assign-... --result 'merged retry logic'",
-      "  agent-manager provider render --provider claude-code",
-      "  agent-manager workflow check",
+      "  agent-manager library add --kind skill --name 'Retry Pattern' --owner codex --content '# Retry Pattern'",
+      "  agent-manager handoff list --to-agent architect --status validated",
+      "  agent-manager work assign --from-queue --agent codex --priority 1",
+      "  agent-manager provider install --provider claude-code",
+      "  agent-manager agent onboard --id codex-1 --provider claude-code --capabilities nodejs,workflow",
+      "  agent-manager describe system",
       "",
       "Environment:",
       "  Intake: ADO_ORG, ADO_PROJECT, ADO_PAT, ITRACK_BASE_URL, ITRACK_TOKEN",
@@ -92,11 +106,7 @@ async function handleIntake(positional, flags) {
   }
 
   const source = flags.source || "all";
-  if (![
-    "ado",
-    "itrack",
-    "all"
-  ].includes(source)) {
+  if (!["ado", "itrack", "all"].includes(source)) {
     throw new Error(`Invalid --source '${source}'. Use ado, itrack, or all.`);
   }
 
@@ -107,6 +117,32 @@ async function handleIntake(positional, flags) {
 
   const dryRun = Boolean(flags["dry-run"]);
   return runIntakeSync({ source, limit, dryRun });
+}
+
+async function handleLibrary(positional, flags) {
+  const action = positional[1];
+
+  if (action === "check") {
+    await runNodeScript("scripts/library-check.js");
+    return null;
+  }
+  if (action === "add") {
+    return addToLibrary(flags);
+  }
+  if (action === "remove") {
+    return removeFromLibrary(flags);
+  }
+  if (action === "list") {
+    return listLibrary(flags);
+  }
+  if (action === "show") {
+    return showLibraryEntry(flags);
+  }
+  if (action === "scaffold") {
+    return scaffoldLibraryEntry(flags);
+  }
+
+  throw new Error("library supports check, add, remove, list, show, scaffold");
 }
 
 async function handleHandoff(positional, flags) {
@@ -137,13 +173,24 @@ async function handleHandoff(positional, flags) {
     return rollbackHandoff(String(flags.file), String(flags.agent), String(flags.reason || ""));
   }
 
-  throw new Error("handoff supports start, validate, resume, rollback");
+  if (action === "list") {
+    return listHandoffs({
+      toAgent: flags["to-agent"] ? String(flags["to-agent"]) : "",
+      status: flags.status ? String(flags.status) : "",
+      workItem: flags["work-item"] ? String(flags["work-item"]) : ""
+    });
+  }
+
+  throw new Error("handoff supports start, validate, resume, rollback, list");
 }
 
 async function handleWork(positional, flags) {
   const action = positional[1];
 
   if (action === "assign") {
+    if (flags["from-queue"]) {
+      return assignWorkFromQueue(flags);
+    }
     return assignWork(flags);
   }
   if (action === "checkpoint") {
@@ -162,6 +209,45 @@ async function handleWork(positional, flags) {
   throw new Error("work supports assign, checkpoint, complete, release, status");
 }
 
+async function handleDescribe(positional) {
+  const topic = positional[1];
+  if (topic === "system") {
+    return describeSystem();
+  }
+  if (topic === "commands") {
+    return describeCommands();
+  }
+  if (topic === "workflows") {
+    return describeWorkflows();
+  }
+  if (topic === "config") {
+    return getConfig();
+  }
+  throw new Error("describe supports system, commands, workflows, config");
+}
+
+async function handleAgent(positional, flags) {
+  const action = positional[1];
+  if (action === "register") {
+    return registerAgent(flags);
+  }
+  if (action === "heartbeat") {
+    return heartbeatAgent(flags);
+  }
+  if (action === "list") {
+    return listAgents(flags);
+  }
+  if (action === "onboard") {
+    return onboardAgent(flags, {
+      describeSystem,
+      listLibrary,
+      installProviderBundle
+    });
+  }
+
+  throw new Error("agent supports register, heartbeat, list, onboard");
+}
+
 async function main() {
   const { positional, flags } = parseArgs(process.argv.slice(2));
 
@@ -171,11 +257,6 @@ async function main() {
   }
 
   let result = null;
-
-  if (positional[0] === "library" && positional[1] === "check") {
-    await runNodeScript("scripts/library-check.js");
-    return;
-  }
 
   if (positional[0] === "workflow" && positional[1] === "check") {
     await runNodeScript("scripts/workflow-check.js");
@@ -187,10 +268,23 @@ async function main() {
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     return;
   }
+  if (positional[0] === "provider" && positional[1] === "install") {
+    result = await installProviderBundle(flags);
+    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    return;
+  }
 
   if (positional[0] === "intake") {
     result = await handleIntake(positional, flags);
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    return;
+  }
+
+  if (positional[0] === "library") {
+    result = await handleLibrary(positional, flags);
+    if (result) {
+      process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    }
     return;
   }
 
@@ -202,6 +296,24 @@ async function main() {
 
   if (positional[0] === "work") {
     result = await handleWork(positional, flags);
+    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    return;
+  }
+
+  if (positional[0] === "describe") {
+    result = await handleDescribe(positional);
+    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    return;
+  }
+
+  if (positional[0] === "agent") {
+    result = await handleAgent(positional, flags);
+    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    return;
+  }
+
+  if (positional[0] === "help") {
+    result = generateHelp(positional[1]);
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     return;
   }
