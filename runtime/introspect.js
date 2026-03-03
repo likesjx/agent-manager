@@ -12,6 +12,7 @@ export async function describeSystem() {
     name: "agent-manager",
     version: pkg.version,
     capabilities: {
+      setup: { operations: ["init"] },
       intake: { sources: ["ado", "itrack"], operations: ["sync"] },
       library: { kinds: ["agent", "hook", "skill", "plugin", "prompt", "tool"], operations: ["check", "add", "remove", "list", "show", "scaffold"] },
       handoff: { operations: ["start", "validate", "resume", "rollback", "list"], protocols: { delivery: ["push", "pull"], mode: ["sync", "async"] } },

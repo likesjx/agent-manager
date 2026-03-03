@@ -1,4 +1,5 @@
 import { fetchWithRetry } from "../http.js";
+import { getCredential } from "../../../runtime/credentials/index.js";
 
 function getRequiredEnv(name) {
   const value = process.env[name];
@@ -8,8 +9,20 @@ function getRequiredEnv(name) {
   return value;
 }
 
-function makeAdoHeaders() {
-  const pat = getRequiredEnv("ADO_PAT");
+async function getRequiredSecret(name, credentialKey) {
+  const envValue = process.env[name];
+  if (envValue) {
+    return envValue;
+  }
+  const stored = await getCredential(process.cwd(), credentialKey);
+  if (stored) {
+    return stored;
+  }
+  throw new Error(`Missing required environment variable or stored credential: ${name}`);
+}
+
+async function makeAdoHeaders() {
+  const pat = await getRequiredSecret("ADO_PAT", "ado_pat");
   const token = Buffer.from(`:${pat}`).toString("base64");
   return {
     Authorization: `Basic ${token}`,
@@ -47,7 +60,7 @@ export async function runAdoSync({ cursor, limit }) {
   const org = getRequiredEnv("ADO_ORG");
   const project = getRequiredEnv("ADO_PROJECT");
   const base = `https://dev.azure.com/${encodeURIComponent(org)}/${encodeURIComponent(project)}`;
-  const headers = makeAdoHeaders();
+  const headers = await makeAdoHeaders();
   const cappedLimit = Math.max(1, Math.floor(limit));
 
   const changedClause = cursor ? `AND [System.ChangedDate] > ${toAdoDateLiteral(cursor)}` : "";

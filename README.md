@@ -21,14 +21,17 @@ Repo-embeddable, provider-agnostic agent operations module for:
 ## Quick start
 
 1. Install Node 20+.
-2. Validate structure and workflow contracts: `npm run validate`
-3. Run intake sync:
+2. Initialize in a host repo:
+   - `node cli.js init --mode embedded --agent-id <agent-id> --provider <provider> --capabilities <csv>`
+   - Modes: `embedded`, `standalone`, `submodule`
+3. Validate structure and workflow contracts: `npm run validate`
+4. Run intake sync:
    - `node cli.js intake sync --source ado`
    - `node cli.js intake sync --source itrack`
    - `node cli.js intake sync --source all`
-4. Validate shared team library:
+5. Validate shared team library:
    - `node cli.js library check`
-5. Validate workflows:
+6. Validate workflows:
    - `node cli.js workflow check`
 
 ## For agents
@@ -68,6 +71,30 @@ Run examples:
 cargo run --manifest-path rust-cli/agent-manager-rs/Cargo.toml -- describe system
 cargo run --manifest-path rust-cli/agent-manager-rs/Cargo.toml -- library list --kind skill
 ```
+
+Parity harness:
+
+```bash
+npm run parity:check
+```
+
+If Rust crates are unavailable in the current environment, parity check exits with a skip message.
+
+Spec traceability:
+
+- `docs/SPEC-GAP-MAP.md` maps proposal requirements to implemented/partial/missing status.
+
+### Credential abstraction
+
+Credential backend selection:
+
+- `AGENT_MANAGER_CREDENTIAL_BACKEND=macos|linux|windows|file`
+- Default picks platform backend and falls back to file store when backend is unavailable.
+
+Current secure-store status:
+
+- Platform secure store backends are stubbed.
+- File fallback is active at `.agent-manager/credentials.json`.
 
 ### Contribute to shared library
 

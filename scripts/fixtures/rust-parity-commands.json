@@ -1,0 +1,32 @@
+[
+  {
+    "name": "describe-system",
+    "node": ["describe", "system"],
+    "rust": ["describe", "system"]
+  },
+  {
+    "name": "describe-commands",
+    "node": ["describe", "commands"],
+    "rust": ["describe", "commands"]
+  },
+  {
+    "name": "describe-workflows",
+    "node": ["describe", "workflows"],
+    "rust": ["describe", "workflows"]
+  },
+  {
+    "name": "library-list-skill",
+    "node": ["library", "list", "--kind", "skill"],
+    "rust": ["library", "list", "--kind", "skill"]
+  },
+  {
+    "name": "handoff-list",
+    "node": ["handoff", "list"],
+    "rust": ["handoff", "list"]
+  },
+  {
+    "name": "work-status",
+    "node": ["work", "status"],
+    "rust": ["work", "status"]
+  }
+]

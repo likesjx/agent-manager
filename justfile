@@ -6,6 +6,9 @@ default:
 validate:
   npm run validate
 
+init mode="embedded" agent_id="codex-local" provider="claude-code" capabilities="nodejs,workflow":
+  node cli.js init --mode {{mode}} --agent-id {{agent_id}} --provider {{provider}} --capabilities {{capabilities}}
+
 test:
   npm test
 

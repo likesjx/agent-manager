@@ -1,4 +1,5 @@
 import { fetchWithRetry } from "../http.js";
+import { getCredential } from "../../../runtime/credentials/index.js";
 
 function getRequiredEnv(name) {
   const value = process.env[name];
@@ -6,6 +7,18 @@ function getRequiredEnv(name) {
     throw new Error(`Missing required environment variable: ${name}`);
   }
   return value;
+}
+
+async function getRequiredSecret(name, credentialKey) {
+  const envValue = process.env[name];
+  if (envValue) {
+    return envValue;
+  }
+  const stored = await getCredential(process.cwd(), credentialKey);
+  if (stored) {
+    return stored;
+  }
+  throw new Error(`Missing required environment variable or stored credential: ${name}`);
 }
 
 function withCursor(url, cursor) {
@@ -82,7 +95,7 @@ function normalizeItrackItem(item, baseUrl) {
 
 export async function runItrackSync({ cursor, limit }) {
   const baseUrl = getRequiredEnv("ITRACK_BASE_URL");
-  const token = getRequiredEnv("ITRACK_TOKEN");
+  const token = await getRequiredSecret("ITRACK_TOKEN", "itrack_token");
   const endpoint = process.env.ITRACK_ISSUES_ENDPOINT || "/api/issues";
   const cappedLimit = Math.max(1, Math.floor(limit));
   const pageSize = Math.min(cappedLimit, 100);

@@ -1,4 +1,8 @@
 commands:
+  - id: init
+    usage: node cli.js init [--repo <path>] [--mode <embedded|standalone|submodule>] [--agent-id <id>] [--provider <provider>] [--capabilities <csv>] [--ado-pat <pat>] [--itrack-token <token>]
+    category: setup
+
   - id: intake.sync
     usage: node cli.js intake sync --source <ado|itrack|all> [--limit <n>] [--dry-run]
     category: intake

@@ -162,17 +162,21 @@ fn handle_describe(cwd: &Path, topic: DescribeCommand) -> Result<serde_json::Val
                 "name": "agent-manager",
                 "version": version,
                 "capabilities": {
+                    "setup": {"operations": ["init"]},
                     "intake": {"sources": ["ado", "itrack"], "operations": ["sync"]},
-                    "library": {"operations": ["list", "show"]},
-                    "handoff": {"operations": ["list"]},
-                    "work": {"operations": ["status"]},
-                    "provider": {"supported": ["claude-code"]}
+                    "library": {"kinds": ["agent", "hook", "skill", "plugin", "prompt", "tool"], "operations": ["check", "add", "remove", "list", "show", "scaffold"]},
+                    "handoff": {"operations": ["start", "validate", "resume", "rollback", "list"], "protocols": {"delivery": ["push", "pull"], "mode": ["sync", "async"]}},
+                    "work": {"operations": ["assign", "checkpoint", "complete", "release", "status"]},
+                    "provider": {"supported": ["claude-code"], "operations": ["render", "install"]},
+                    "workflow": {"operations": ["check"]},
+                    "agent": {"operations": ["register", "heartbeat", "list", "onboard"]}
                 },
                 "paths": {
                     "library": "library/",
                     "queue": "queue/",
                     "handoffs": "handoffs/",
-                    "state": ".agent-manager/"
+                    "state": ".agent-manager/",
+                    "providers": ".agent-manager/providers/"
                 }
             })
         }

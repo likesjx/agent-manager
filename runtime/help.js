@@ -5,6 +5,7 @@ export function generateHelp(topic = "") {
     return {
       usage: "agent-manager <command> [options]",
       commands: {
+        init: "Initialize agent-manager in a host repository",
         intake: "Sync work items from external systems",
         library: "Manage shared team library entries",
         handoff: "Create and manage agent handoffs",

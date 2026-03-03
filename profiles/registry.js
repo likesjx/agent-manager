@@ -1,12 +1,12 @@
 import path from "node:path";
 import { readJson, writeJson, nowIso } from "../runtime/json-store.js";
 
-function registryPath() {
-  return path.resolve(process.cwd(), ".agent-manager", "agent-registry.json");
+function registryPath(rootDir = process.cwd()) {
+  return path.resolve(rootDir, ".agent-manager", "agent-registry.json");
 }
 
-async function loadRegistry() {
-  return readJson(registryPath(), { version: 1, agents: [] });
+async function loadRegistry(rootDir = process.cwd()) {
+  return readJson(registryPath(rootDir), { version: 1, agents: [] });
 }
 
 function splitCsv(value) {
@@ -19,7 +19,8 @@ function splitCsv(value) {
     .filter(Boolean);
 }
 
-export async function registerAgent(flags) {
+export async function registerAgent(flags, options = {}) {
+  const rootDir = options.rootDir || process.cwd();
   const id = String(flags.id || "").trim();
   const provider = String(flags.provider || "unknown").trim();
   const name = String(flags.name || id || "").trim();
@@ -29,7 +30,7 @@ export async function registerAgent(flags) {
     throw new Error("agent register requires --id");
   }
 
-  const registry = await loadRegistry();
+  const registry = await loadRegistry(rootDir);
   const index = registry.agents.findIndex((x) => x.id === id);
   if (index >= 0 && !flags.force) {
     throw new Error(`agent '${id}' already registered; use --force to overwrite`);
@@ -54,17 +55,18 @@ export async function registerAgent(flags) {
     registry.agents.push(payload);
   }
 
-  await writeJson(registryPath(), registry);
+  await writeJson(registryPath(rootDir), registry);
   return payload;
 }
 
-export async function heartbeatAgent(flags) {
+export async function heartbeatAgent(flags, options = {}) {
+  const rootDir = options.rootDir || process.cwd();
   const id = String(flags.id || "").trim();
   if (!id) {
     throw new Error("agent heartbeat requires --id");
   }
 
-  const registry = await loadRegistry();
+  const registry = await loadRegistry(rootDir);
   const agent = registry.agents.find((x) => x.id === id);
   if (!agent) {
     throw new Error(`agent '${id}' not registered`);
@@ -76,12 +78,13 @@ export async function heartbeatAgent(flags) {
   }
   agent.updated_at = agent.last_heartbeat;
 
-  await writeJson(registryPath(), registry);
+  await writeJson(registryPath(rootDir), registry);
   return { id: agent.id, last_heartbeat: agent.last_heartbeat, status: agent.status };
 }
 
-export async function listAgents(flags = {}) {
-  const registry = await loadRegistry();
+export async function listAgents(flags = {}, options = {}) {
+  const rootDir = options.rootDir || process.cwd();
+  const registry = await loadRegistry(rootDir);
   const maxAgeSeconds = Number(flags["offline-seconds"] || process.env.AGENT_HEARTBEAT_TTL_SECONDS || 300);
   const cutoff = Date.now() - Math.max(30, maxAgeSeconds) * 1000;
 
@@ -95,7 +98,7 @@ export async function listAgents(flags = {}) {
 }
 
 export async function onboardAgent(flags, deps) {
-  const registration = await registerAgent(flags);
+  const registration = await registerAgent(flags, { rootDir: deps.rootDir || process.cwd() });
   const system = await deps.describeSystem();
   const library = await deps.listLibrary({});
   let install = null;

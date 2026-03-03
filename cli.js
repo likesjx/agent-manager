@@ -2,6 +2,7 @@
 
 import { spawn } from "node:child_process";
 import { runIntakeSync } from "./intake/index.js";
+import { runInit } from "./init/index.js";
 import {
   addToLibrary,
   listLibrary,
@@ -60,6 +61,7 @@ function printHelp() {
       "",
       "Usage:",
       "  agent-manager intake sync --source <ado|itrack|all> [--limit <n>] [--dry-run]",
+      "  agent-manager init [--repo <path>] [--mode <embedded|standalone|submodule>]",
       "  agent-manager library <check|add|remove|list|show|scaffold> [flags]",
       "  agent-manager handoff <start|validate|resume|rollback|list> [flags]",
       "  agent-manager work <assign|checkpoint|complete|release|status> [flags]",
@@ -71,6 +73,7 @@ function printHelp() {
       "",
       "Examples:",
       "  agent-manager library add --kind skill --name 'Retry Pattern' --owner codex --content '# Retry Pattern'",
+      "  agent-manager init --mode embedded --agent-id codex-1 --provider claude-code --capabilities nodejs,workflow",
       "  agent-manager handoff list --to-agent architect --status validated",
       "  agent-manager work assign --from-queue --agent codex --priority 1",
       "  agent-manager provider install --provider claude-code",
@@ -257,6 +260,12 @@ async function main() {
   }
 
   let result = null;
+
+  if (positional[0] === "init") {
+    result = await runInit(flags);
+    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    return;
+  }
 
   if (positional[0] === "workflow" && positional[1] === "check") {
     await runNodeScript("scripts/workflow-check.js");
